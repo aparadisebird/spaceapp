@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #0f0c29, #302b63, #24243e); /* Space-themed gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: #e0e7ff; /* Light blue/purple */
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(173, 216, 230, 0.5);
+        }
+        .question-box {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+        .answer-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .answer-button {
+            background-color: rgba(100, 149, 237, 0.8); /* Cornflower blue with transparency */
+            color: #ffffff;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .answer-button:hover:not(.correct):not(.incorrect):not(.disabled) {
+            background-color: rgba(70, 130, 180, 0.9); /* Steel blue */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .answer-button.correct {
+            background-color: #4CAF50; /* Green */
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+            animation: pulseGreen 0.5s ease-in-out;
+        }
+        .answer-button.incorrect {
+            background-color: #F44336; /* Red */
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.7);
+            animation: shake 0.3s ease-in-out;
+        }
+        .answer-button.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        @keyframes pulseGreen {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .next-button, .restart-button {
+            background: linear-gradient(45deg, #8A2BE2, #4169E1); /* Blue Violet to Royal Blue */
+            color: #ffffff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            width: 100%;
+            max-width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .next-button:hover, .restart-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, #9932CC, #6A5ACD); /* Darker shades on hover */
+        }
+        .score-display {
+            color: #e0e7ff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 20px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        .final-score {
+            color: #e0e7ff;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 640px) {
+            .answer-buttons {
+                grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Space Quiz</h1>
+        <div id="question-box" class="question-box"></div>
+        <div id="answer-buttons" class="answer-buttons">
+            </div>
+        <button id="next-button" class="next-button">Next Question</button>
+        <button id="restart-button" class="restart-button">Restart Quiz</button>
+        <div id="score-display" class="score-display">Score: 0</div>
+    </div>
+
+    <script>
+        // Array of quiz questions
+        const questions = [
+            {
+                question: "Which planet is known as the 'Red Planet'?",
+                options: ["Earth", "Mars", "Jupiter", "Venus"],
+                correctAnswer: "Mars"
+            },
+            {
+                question: "What is the largest planet in our solar system?",
+                options: ["Mars", "Saturn", "Jupiter", "Neptune"],
+                correctAnswer: "Jupiter"
+            },
+            {
+                question: "What is the name of our galaxy?",
+                options: ["Andromeda", "Triangulum", "Messier 81", "Milky Way"],
+                correctAnswer: "Milky Way"
+            },
+            {
+                question: "Which celestial body is at the center of our solar system?",
+                options: ["Earth", "Moon", "Sun", "Mars"],
+                correctAnswer: "Sun"
+            },
+            {
+                question: "How many planets are in our solar system?",
+                options: ["7", "8", "9", "10"],
+                correctAnswer: "8"
+            },
+            {
+                question: "What is a 'light-year' a measure of?",
+                options: ["Time", "Distance", "Speed", "Brightness"],
+                correctAnswer: "Distance"
+            },
+            {
+                question: "Which planet is famous for its prominent ring system?",
+                options: ["Jupiter", "Uranus", "Neptune", "Saturn"],
+                correctAnswer: "Saturn"
+            },
+            {
+                question: "What is the smallest planet in our solar system?",
+                options: ["Mars", "Mercury", "Pluto", "Venus"],
+                correctAnswer: "Mercury"
+            },
+            {
+                question: "Which moon is the largest moon of Saturn and the second largest in the solar system?",
+                options: ["Europa", "Ganymede", "Titan", "Triton"],
+                correctAnswer: "Titan"
+            },
+            {
+                question: "What phenomenon occurs when a star's core collapses, leading to a massive explosion?",
+                options: ["Solar Flare", "Black Hole Formation", "Supernova", "Nebula Formation"],
+                correctAnswer: "Supernova"
+            }
+        ];
+
+        // Get DOM elements
+        const questionBox = document.getElementById('question-box');
+        const answerButtonsContainer = document.getElementById('answer-buttons');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+        const scoreDisplay = document.getElementById('score-display');
+
+        // Quiz state variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answerSelected = false; // Flag to prevent multiple selections per question
+
+        /**
+         * Initializes the quiz by loading the first question and resetting scores.
+         */
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            answerSelected = false;
+            scoreDisplay.textContent = `Score: ${score}`;
+            nextButton.style.display = 'none';
+            restartButton.style.display = 'none';
+            loadQuestion();
+        }
+
+        /**
+         * Loads and displays the current question and its options.
+         */
+        function loadQuestion() {
+            // Clear previous answer buttons
+            answerButtonsContainer.innerHTML = '';
+            answerSelected = false; // Reset for the new question
+            nextButton.style.display = 'none'; // Hide next button until an answer is selected
+
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
+                questionBox.textContent = currentQuestion.question;
+
+                // Create answer buttons for each option
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('answer-button');
+                    button.addEventListener('click', () => checkAnswer(option, currentQuestion.correctAnswer, button));
+                    answerButtonsContainer.appendChild(button);
+                });
+                scoreDisplay.style.display = 'block'; // Show score during quiz
+            } else {
+                // End of quiz
+                showFinalScore();
+            }
+        }
+
+        /**
+         * Checks if the selected answer is correct, updates score, and provides visual feedback.
+         * @param {string} selectedOption - The option selected by the user.
+         * @param {string} correctAnswer - The correct answer for the current question.
+         * @param {HTMLElement} clickedButton - The button element that was clicked.
+         */
+        function checkAnswer(selectedOption, correctAnswer, clickedButton) {
+            if (answerSelected) return; // Prevent multiple selections
+
+            answerSelected = true; // Mark an answer as selected
+
+            // Disable all answer buttons after selection
+            Array.from(answerButtonsContainer.children).forEach(button => {
+                button.classList.add('disabled');
+            });
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                clickedButton.classList.add('correct');
+            } else {
+                clickedButton.classList.add('incorrect');
+                // Highlight the correct answer
+                Array.from(answerButtonsContainer.children).forEach(button => {
+                    if (button.textContent === correctAnswer) {
+                        button.classList.add('correct');
+                    }
+                });
+            }
+            scoreDisplay.textContent = `Score: ${score}`;
+            nextButton.style.display = 'block'; // Show next button
+        }
+
+        /**
+         * Moves to the next question or ends the quiz if all questions are answered.
+         */
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        /**
+         * Displays the final score and the restart button.
+         */
+        function showFinalScore() {
+            questionBox.textContent = "Quiz Completed!";
+            questionBox.classList.remove('question-box'); // Remove question box styling
+            questionBox.classList.add('final-score'); // Add final score styling
+            answerButtonsContainer.innerHTML = ''; // Clear answer buttons
+            nextButton.style.display = 'none'; // Hide next button
+            restartButton.style.display = 'block'; // Show restart button
+            scoreDisplay.textContent = `You scored ${score} out of ${questions.length}!`;
+        }
+
+        // Event Listeners
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', startQuiz);
+
+        // Start the quiz when the page loads
+        window.onload = startQuiz;
+    </script>
+</body>
+</html>
